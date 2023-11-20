@@ -10,6 +10,7 @@ dash = "*"
 ipykernel = "*"
 nbformat = "*"
 dash-bootstrap-components = "*"
+dash-bootstrap-templates = "*"
 
 [dev-packages]
 
