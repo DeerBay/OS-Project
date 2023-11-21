@@ -55,4 +55,5 @@ app.layout = html.Div([
     ],style={"margin-top": "20px", "text-align": "center"})
 ])
 
-app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True)
