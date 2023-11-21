@@ -10,6 +10,8 @@ athlete_events = pd.read_csv("../data/final_df.csv")
 
 # Df Swedish Athletes
 sweden_athletes = pd.DataFrame(athlete_events[athlete_events["NOC"] == "SWE"])
+participants_medals= athlete_events(['Year', 'Season', 'Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude', 'Sport'], as_index=False)[['Name', 'Medal']].agg(
+{'Name': 'nunique', 'Medal': 'count'})
 
 # Loading template for graphs
 load_figure_template("quartz")
@@ -100,8 +102,6 @@ app.layout = html.Div([
 def figure_one(year, country):
     df = athlete_events.query("Year == @year & Country == @country")
     # Dataframe for participants and medals per year
-    participants_medals= df.groupby(['Year', 'Season', 'Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude', 'Sport'], as_index=False)[['Name', 'Medal']].agg(
-    {'Name': 'nunique', 'Medal': 'count'})
     return ...
     ...
 
