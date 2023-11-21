@@ -107,3 +107,4 @@ def figure_one(year, country):
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
