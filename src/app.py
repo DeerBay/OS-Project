@@ -6,7 +6,7 @@ import pandas as pd
 from dash_bootstrap_templates import load_figure_template
 
 # Df All Athletes
-athlete_events = pd.read_csv("../data/athlete_events.csv")
+athlete_events = pd.read_csv("../data/final_df.csv")
 
 # Df Swedish Athletes
 sweden_athletes = pd.DataFrame(athlete_events[athlete_events["NOC"] == "SWE"])
@@ -33,6 +33,44 @@ app.layout = html.Div([
         ],
         className="mb-3 mt-3", # Adding marginal bottom and top
     ),
+    dbc.Row(
+        [
+            dcc.Dropdown(id='year_dropdown', className='text-info',
+                        multi=True, 
+                        options=[year for year in sorted(athlete_events['Year'].unique())], 
+                        placeholder='Select Year',
+                        style={'width':'150px'},
+            ),
+            dcc.Dropdown(id='country_dropdown', className='text-info',
+                        multi=True, 
+                        options=[year for year in sorted(athlete_events['Year'].unique())], 
+                        placeholder='Select Year',
+                        style={'width':'150px'}
+            ),
+            dcc.Dropdown(id='continent_dropdown', className='text-info',
+                        multi=True, 
+                        options=[year for year in sorted(athlete_events['Year'].unique())], 
+                        placeholder='Select Year',
+                        style={'width':'150px'}
+
+            ),
+            dcc.Dropdown(id='sport_dropdown', className='text-info',
+                        multi=True, 
+                        options=[year for year in sorted(athlete_events['Year'].unique())], 
+                        placeholder='Select Year',
+                        style={'width':'150px'}
+
+            ),
+            dcc.Dropdown(id='season_dropdown', className='text-info',
+                        multi=True, 
+                        options=[year for year in sorted(athlete_events['Year'].unique())], 
+                        placeholder='Select Year',
+                        style={'width':'150px'}
+
+            ),
+
+        ], justify='center',
+    ), 
     dbc.Row([
         dbc.Col(
             dbc.Card(
