@@ -33,44 +33,28 @@ app.layout = html.Div([
         ],
         className="mb-3 mt-3", # Adding marginal bottom and top
     ),
-    dbc.Row(
-        [
+    dbc.Row([
             dcc.Dropdown(id='year_dropdown', className='text-info',
                         multi=True, 
                         options=[year for year in sorted(athlete_events['Year'].unique())], 
                         placeholder='Select Year',
-                        style={'width':'150px'},
-            ),
-            dcc.Dropdown(id='country_dropdown', className='text-info',
-                        multi=True, 
-                        options=[year for year in sorted(athlete_events['Year'].unique())], 
-                        placeholder='Select Year',
-                        style={'width':'150px'}
-            ),
-            dcc.Dropdown(id='continent_dropdown', className='text-info',
-                        multi=True, 
-                        options=[year for year in sorted(athlete_events['Year'].unique())], 
-                        placeholder='Select Year',
-                        style={'width':'150px'}
-
+                        style={'width':'150px', 'margin-left': '10px', 'margin-right': '10px'},
             ),
             dcc.Dropdown(id='sport_dropdown', className='text-info',
                         multi=True, 
-                        options=[year for year in sorted(athlete_events['Year'].unique())], 
-                        placeholder='Select Year',
-                        style={'width':'150px'}
+                        options=[sport for sport in sorted(athlete_events['Sport'].unique())], 
+                        placeholder='Select Sport',
+                        style={'width':'150px', 'margin-left': '10px', 'margin-right': '10px'},
 
             ),
             dcc.Dropdown(id='season_dropdown', className='text-info',
                         multi=True, 
-                        options=[year for year in sorted(athlete_events['Year'].unique())], 
-                        placeholder='Select Year',
-                        style={'width':'150px'}
+                        options=[season for season in sorted(athlete_events['Season'].unique())], 
+                        placeholder='Select Season',
+                        style={'width':'150px', 'margin-left': '10px', 'margin-right': '10px'})
 
-            ),
+    ], justify='center', class_name="mb-2 ml-50 mr-50"), 
 
-        ], justify='center',
-    ), 
     dbc.Row([
         dbc.Col(
             dbc.Card(
@@ -81,7 +65,7 @@ app.layout = html.Div([
                                  className='ml-3 mr-3 mb-1 text-info', 
                                  options=[sport for sport in sorted(athlete_events['Sport'].unique())], 
                                  placeholder='Select Sport'),
-                                 dcc.Graph(id="graph_1_left"),
+                                 dcc.Graph(id="graph_1_left", figure={}),
                     ]),
                 ],
                 className="mb-3",
@@ -108,6 +92,18 @@ app.layout = html.Div([
         dcc.Link("Contributors", href="https://github.com/DeerBay/OS-Project/graphs/contributors", target="_blank"), # "_blank": Opens the linked document in a new tab or window.
     ],style={"margin-top": "20px", "text-align": "center"})
 ])
+
+@callback(
+    Output("graph_1_left", "figure"),
+    )
+
+def figure_one(year, country):
+    df = athlete_events.query("Year == @year & Country == @country")
+    # Dataframe for participants and medals per year
+    participants_medals= df.groupby(['Year', 'Season', 'Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude', 'Sport'], as_index=False)[['Name', 'Medal']].agg(
+    {'Name': 'nunique', 'Medal': 'count'})
+    return ...
+    ...
 
 if __name__ == "__main__":
     app.run(debug=True)
