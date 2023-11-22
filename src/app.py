@@ -16,41 +16,40 @@ sweden_athletes = pd.DataFrame(athlete_events[athlete_events["NOC"] == "SWE"])
 
 gender_ratios = pd.read_csv("../data/gender_ratios.csv")
 
-participants_medals= athlete_events.groupby(['Year','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], 
-                                            as_index=False)[['Participants', 'Medal']].agg({'Participants': 'nunique', 'Medal': 'count'})
+participants_medals= athlete_events.groupby(['Year','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
+    {'Participants': 'nunique', 'Medal': 'count'})
 
 participants_medals_start = participants_medals.groupby(['Country','Continent' , 
                                                         'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], 
-                                                        as_index=False)[['Participants', 'Medal']].sum()
+                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
 
-participants_medals_sport = athlete_events.groupby(['Year','Country', 'Sport', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], 
-                                                   as_index=False)[['Participants', 'Medal']].agg({'Participants': 'nunique', 'Medal': 'count'})
+participants_medals_sport = athlete_events.groupby(['Year', 'Country', 'Sport', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
+    {'Participants': 'nunique', 'Medal': 'count'})
+
+participants_medals_sport = athlete_events.groupby(['Year','Country', 'Sport', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
+    {'Participants': 'nunique', 'Medal': 'count'})
 
 participants_medals_sport_total = participants_medals_sport.groupby(['Country','Sport' , 'Continent',
                                                         'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], 
-                                                        as_index=False)[['Participants', 'Medal']].sum()
+                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
 
 participants_medals_sport_year = participants_medals_sport.groupby(['Year','Country','Sport' , 'Continent',
                                                         'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], 
-                                                        as_index=False)[['Participants', 'Medal']].sum()
+                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
 
 medal_distribution = athlete_events.groupby(['Year','Country', 'Sport', 'Medal']).size().reset_index(name="Number of Medals")
+
 
 medal_distribution_sweden = medal_distribution.query('Country == "Sweden"')
 
 
-participants_medals_season = athlete_events.groupby(['Year','Season','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], 
-                                                    as_index=False)[['Participants', 'Medal']].agg({'Participants': 'nunique', 'Medal': 'count'})
+participants_medals_season = athlete_events.groupby(['Year','Season','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
+    {'Participants': 'nunique', 'Medal': 'count'})
 
 
 participants_medals_season_start= participants_medals_season.groupby(['Country','Season','Continent' , 
                                                         'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], 
-                                                        as_index=False)[['Participants', 'Medal']].sum()
-
+                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
 
 # Loading template for graphs
 load_figure_template("quartz")
@@ -67,41 +66,20 @@ app = Dash(__name__,
 server = app.server
 
 # Layout for App
-app.layout = html.Div([
-    dbc.Row([
-        dbc.Col(html.H2("Olympic Games Achievements 1896-2016", className="text-center text-primary")),
+app.layout = dbc.Container([
+
+    dbc.Row(
+        [
+        dbc.Col(html.H1("Olympic Games Achievements 1896-2016", className="text-center text-primary")),
         ],
         className="mb-3 mt-3", # Adding marginal bottom and top
     ),
-    
-    # Row containing dropdowns and graphs
-    dbc.Row([
-        dbc.Col([
-                dcc.Dropdown(id='country_dropdown_left', 
-                    className='ml-3 mr-3 mb-3 mt-3 text-info', 
-                    options=["Medals", "Gender ratio"], 
-                    placeholder='Sort by medals or gender ratio'),
-                    dcc.Graph(id="graph_1_left",    
-                    figure={}),
-                ], xs=12, sm=11, md=10, lg=5,width='auto'),
-        dbc.Col([
-                dcc.Dropdown(id='country_dropdown_right', 
-                    className='ml-3 mr-3 mb-3 mt-3 text-info', 
-                    options=[
-                    {'label': 'Sort by Sports', 'value': 'Sport'},
-                    {'label': 'Sort by Countries', 'value': 'Country'}],
-                    placeholder='Sort by Country or Sport'), 
-                    dcc.Graph(id="graph_1_right",    
-                    figure={})],
-                    xs=12, sm=11, md=10, lg=5),
-    ], justify='center', className="container-fluid"),  # Added container-fluid class for better responsiveness,
-
-dbc.Row(
+    dbc.Row(
     [
         dbc.Col(
             dcc.Dropdown(
                 id='year_dropdown',
-                className='text-info mt-2 mb-2',
+                className='text-info mt-1 mb-1',
                 multi=True, 
                 options=[{'label': year, 'value': year} for year in sorted(athlete_events['Year'].unique())], 
                 placeholder='Select Year',
@@ -112,7 +90,7 @@ dbc.Row(
         dbc.Col(
             dcc.Dropdown(
                 id='sport_dropdown',
-                className='text-info mt-2 mb-2',
+                className='text-info mt-1 mb-1',
                 multi=True, 
                 options=[{'label': sport, 'value': sport} for sport in sorted(athlete_events['Sport'].unique())], 
                 placeholder='Select Sport',
@@ -123,9 +101,9 @@ dbc.Row(
         dbc.Col(
             dcc.Dropdown(
                 id='season_dropdown',
-                className='text-info mt-2 mb-2',
+                className='text-info mt-1 mb-1',
                 multi=True, 
-                options=[{'label': season, 'value': season} for season in sorted(athlete_events['Season'].unique())], 
+                options=['Summer', 'Winter'], 
                 placeholder='Select Season',
                 style={'width': '100%'},
             ),
@@ -134,7 +112,7 @@ dbc.Row(
         dbc.Col(
             dcc.Dropdown(
                 id='sport_or_medal_dropdown', 
-                className='text-info mt-2 mb-2', 
+                className='text-info mt-1 mb-1', 
                 options=[
                     {'label': 'Sort by Sports', 'value': 'Sports'},
                     {'label': 'Sort by Medals', 'value': 'Medals'}
@@ -143,50 +121,99 @@ dbc.Row(
                 style={'width': '100%'},
             ),
             xs=12, sm=6, md=4, lg=3
+        ),
+        dbc.Col(
+            dcc.Dropdown(id='country_dropdown_right', 
+                    className='mb-1 mt-1 text-info', 
+                    options=[
+                    {'label': 'Sort by Sports', 'value': 'Sport'},
+                    {'label': 'Sort by Countries', 'value': 'Country'}],
+                    placeholder='Sort by Country or Sport',
+                    style={'width': '100%'},
+            ), 
+            xs=12, sm=6, md=4, lg=3
         ), 
     ],
     justify='center',
-    className="mb-2",
-    style={'margin-left': '10px', 'margin-right': '10px'}  # Set margin to the left and right
+    style={'margin-left': '10px', 'margin-right': '10px'},  # Set margin to the left and right
+    className="sticky-top mb-2"
 ),
-    dbc.Row([
-        dbc.Col([
-            dcc.Graph(
-                id="graph_1_down_left",    
-                figure={})
-                ], xs=12, sm=11, md=10, lg=5, width='auto'),
-
-        dbc.Col([
-            dcc.Graph(
-                id="graph_1_down_right",    
-                figure={})
-                ], xs=12, sm=11, md=10, lg=5, width='auto'),
-    ],justify='center', className="container-fluid mb-3"), 
 
     dbc.Row([
         dbc.Col(
-            dbc.Card(
-                [
-                    dbc.CardHeader(html.H3("Sweden top 10 all Medals", className="text-body-tertiary", id="header_graph_2_left")),
+            dbc.Card([
+                    dbc.CardHeader(html.H3("Medals All Countries", className="text-body-tertiary", id="header_graph_all_countries")),
                     dbc.CardBody([
-                                 dcc.Graph(id="graph_2_left", figure={}),
+                        dcc.Graph(id="graph_all_countries_sunburst", figure={}),
+                        ])
+            ], className="mb-3"
+            ),xs=12, sm=11, md=10, lg=5
+        ),
+        dbc.Col(
+            dbc.Card([
+                    dbc.CardHeader(html.H3("Medals Sweden", className="text-body-tertiary", id="header_graph_sweden")),
+                    dbc.CardBody([
+                        dcc.Graph(id="graph_sweden_sunburst", figure={}),
+                        ])
+            ], className="mb-3"
+            ),xs=12, sm=11, md=10, lg=5
+        ),
+    ], justify='evenly', className="container-fluid"),  # Added container-fluid class for better responsiveness
+
+    dbc.Row([
+        dbc.Col(
+            dbc.Card([
+                    dbc.CardHeader(html.H3("Sweden top 10 all Medals", className="text-body-tertiary", id="header_graph_sweden_top10")),
+                    dbc.CardBody([
+                                 dcc.Graph(id="graph_sweden_top10", figure={}),
                     ]),
                 ],
                 className="mb-3",
             ), xs=12, sm=11, md=10, lg=5
         ),
         dbc.Col(
-            dbc.Card(
-                [
-                    dbc.CardHeader(html.H3("Sweden top 10 Gold Medals", className="text-body-tertiary", id="header_graph_2_right")),
+            dbc.Card([
+                    dbc.CardHeader(html.H3("Sweden top 10 Gold Medals", className="text-body-tertiary", id="header_graph_sweden_gold")),
                     dbc.CardBody([
-                                 dcc.Graph(id="graph_2_right", figure={}),
+                                 dcc.Graph(id="graph_sweden_gold", figure={}),
                     ]),
                 ],
                 className="mb-3",
             ), xs=12, sm=11, md=10, lg=5
         ),
     ], justify='evenly'),
+
+    # Row with the graph
+    dbc.Row([
+        dbc.Col([
+                        html.H4("Number of Participants and Medals by Country"),
+            html.P("This graph shows .......", id='mapbox_medal_graph', className='text-primary'),
+            dcc.Graph(
+                id="graph_mapbox_2",    
+                figure={}
+            )
+        ], width=5, xs=12, className="offset-4 ml-2")
+    ], justify='center', className="container-fluid mb-3"),
+
+    # Row with dropdowns and graph
+    dbc.Row([
+        dbc.Col([
+            html.H4("Number of Participants and Gender Distribution by Country"),
+            html.P("Choose whether to display the number of participants or gender distribution by country.", id='p_gender_medal_graph', className='text-primary'),
+            dcc.Dropdown(
+                id='country_dropdown_left', 
+                className='mb-1 text-info', 
+                options=["Medals", "Gender ratio"], 
+                placeholder='Sort by medals or gender ratio',
+                style={'width': '50%'},
+            ),
+            dcc.Graph(
+                id="graph_gender_or_medals_mapbox", 
+                figure={}
+            ),
+        ], width=5, xs=12, className="offset-4 ml-2")
+    ], justify='center', className="container-fluid mb-3"),
+
 
     dbc.Row([
             dbc.Button("Reset", 
@@ -199,11 +226,13 @@ dbc.Row(
                     target="_blank", title='Link to repository on GitHub'), # "_blank": Opens the linked document in a new tab or window.
         ],style={"margin-top": "20px", "text-align": "center"})
 
-])
+], 
+fluid=True
+)
 
 
 @callback(
-    Output("graph_1_left", "figure"),
+    Output("graph_gender_or_medals_mapbox", "figure"),
     Input("year_dropdown", "value"),
     Input("sport_dropdown", "value"),
     Input("country_dropdown_left", "value")
@@ -252,7 +281,7 @@ def figure_one(years, sports, sort):
 
 
 @callback(
-    Output("graph_1_right", "figure"),
+    Output("graph_all_countries_sunburst", "figure"),
     Input("year_dropdown", "value"),
     Input("sport_dropdown", "value"),
     Input("country_dropdown_right", "value"),
@@ -289,7 +318,7 @@ def figure_two(years, sports, sort):
         return fig
 
 @callback(
-Output("graph_1_down_left", "figure"),
+Output("graph_mapbox_2", "figure"),
 Input("year_dropdown", "value"),
 Input("sport_dropdown", "value"),
 Input("season_dropdown", "value")
@@ -410,7 +439,7 @@ def figure_three(years, sports, sort):
     return fig
 
 @callback(
-    Output("graph_1_down_right", "figure"),
+    Output("graph_sweden_sunburst", "figure"),
     Input("year_dropdown", "value"),
     Input("sport_dropdown", "value"),
     Input("sport_or_medal_dropdown", "value"),
@@ -449,7 +478,7 @@ def figure_four(years, sports, sort):
 
  # Callback to update the graph based on dropdown selections
 @callback(
-    Output("graph_2_left", "figure"),
+    Output("graph_sweden_top10", "figure"),
     [
         Input('year_dropdown', 'value'),
         Input('sport_dropdown', 'value'),
@@ -485,7 +514,7 @@ def update__top10_graph(year, sport, season):
 
 # Callback to update the graph based on dropdown selections
 @callback(
-    Output("graph_2_right", "figure"),
+    Output("graph_sweden_gold", "figure"),
     [
         Input('year_dropdown', 'value'),
         Input('sport_dropdown', 'value'),
