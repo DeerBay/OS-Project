@@ -16,41 +16,40 @@ sweden_athletes = pd.DataFrame(athlete_events[athlete_events["NOC"] == "SWE"])
 
 gender_ratios = pd.read_csv("../data/gender_ratios.csv")
 
-participants_medals= athlete_events.groupby(['Year','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], 
-                                            as_index=False)[['Participants', 'Medal']].agg({'Participants': 'nunique', 'Medal': 'count'})
+participants_medals= athlete_events.groupby(['Year','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
+    {'Participants': 'nunique', 'Medal': 'count'})
 
 participants_medals_start = participants_medals.groupby(['Country','Continent' , 
                                                         'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], 
-                                                        as_index=False)[['Participants', 'Medal']].sum()
+                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
 
-participants_medals_sport = athlete_events.groupby(['Year','Country', 'Sport', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], 
-                                                   as_index=False)[['Participants', 'Medal']].agg({'Participants': 'nunique', 'Medal': 'count'})
+participants_medals_sport = athlete_events.groupby(['Year', 'Country', 'Sport', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
+    {'Participants': 'nunique', 'Medal': 'count'})
+
+participants_medals_sport = athlete_events.groupby(['Year','Country', 'Sport', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
+    {'Participants': 'nunique', 'Medal': 'count'})
 
 participants_medals_sport_total = participants_medals_sport.groupby(['Country','Sport' , 'Continent',
                                                         'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], 
-                                                        as_index=False)[['Participants', 'Medal']].sum()
+                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
 
 participants_medals_sport_year = participants_medals_sport.groupby(['Year','Country','Sport' , 'Continent',
                                                         'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], 
-                                                        as_index=False)[['Participants', 'Medal']].sum()
+                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
 
 medal_distribution = athlete_events.groupby(['Year','Country', 'Sport', 'Medal']).size().reset_index(name="Number of Medals")
+
 
 medal_distribution_sweden = medal_distribution.query('Country == "Sweden"')
 
 
-participants_medals_season = athlete_events.groupby(['Year','Season','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], 
-                                                    as_index=False)[['Participants', 'Medal']].agg({'Participants': 'nunique', 'Medal': 'count'})
+participants_medals_season = athlete_events.groupby(['Year','Season','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
+    {'Participants': 'nunique', 'Medal': 'count'})
 
 
 participants_medals_season_start= participants_medals_season.groupby(['Country','Season','Continent' , 
                                                         'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], 
-                                                        as_index=False)[['Participants', 'Medal']].sum()
-
+                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
 
 # Loading template for graphs
 load_figure_template("quartz")
@@ -68,9 +67,10 @@ server = app.server
 
 # Layout for App
 app.layout = dbc.Container([
+
     dbc.Row(
         [
-        dbc.Col(html.H2("Olympic Games Achievements 1896-2016", className="text-center text-primary")),
+        dbc.Col(html.H1("Olympic Games Achievements 1896-2016", className="text-center text-primary")),
         ],
         className="mb-3 mt-3", # Adding marginal bottom and top
     ),
@@ -79,7 +79,7 @@ app.layout = dbc.Container([
         dbc.Col(
             dcc.Dropdown(
                 id='year_dropdown',
-                className='text-info mt-2 mb-2',
+                className='text-info mt-1 mb-1',
                 multi=True, 
                 options=[{'label': year, 'value': year} for year in sorted(athlete_events['Year'].unique())], 
                 placeholder='Select Year',
@@ -90,7 +90,7 @@ app.layout = dbc.Container([
         dbc.Col(
             dcc.Dropdown(
                 id='sport_dropdown',
-                className='text-info mt-2 mb-2',
+                className='text-info mt-1 mb-1',
                 multi=True, 
                 options=[{'label': sport, 'value': sport} for sport in sorted(athlete_events['Sport'].unique())], 
                 placeholder='Select Sport',
@@ -101,9 +101,9 @@ app.layout = dbc.Container([
         dbc.Col(
             dcc.Dropdown(
                 id='season_dropdown',
-                className='text-info mt-2 mb-2',
+                className='text-info mt-1 mb-1',
                 multi=True, 
-                options=[{'label': season, 'value': season} for season in sorted(athlete_events['Season'].unique())], 
+                options=['Summer', 'Winter'], 
                 placeholder='Select Season',
                 style={'width': '100%'},
             ),
@@ -112,7 +112,7 @@ app.layout = dbc.Container([
         dbc.Col(
             dcc.Dropdown(
                 id='sport_or_medal_dropdown', 
-                className='text-info mt-2 mb-2', 
+                className='text-info mt-1 mb-1', 
                 options=[
                     {'label': 'Sort by Sports', 'value': 'Sports'},
                     {'label': 'Sort by Medals', 'value': 'Medals'}
@@ -124,7 +124,7 @@ app.layout = dbc.Container([
         ),
         dbc.Col(
             dcc.Dropdown(id='country_dropdown_right', 
-                    className='ml-3 mr-3 mb-3 mt-3 text-info', 
+                    className='mb-1 mt-1 text-info', 
                     options=[
                     {'label': 'Sort by Sports', 'value': 'Sport'},
                     {'label': 'Sort by Countries', 'value': 'Country'}],
@@ -135,8 +135,8 @@ app.layout = dbc.Container([
         ), 
     ],
     justify='center',
-    className="mb-2",
-    style={'margin-left': '10px', 'margin-right': '10px'}  # Set margin to the left and right
+    style={'margin-left': '10px', 'margin-right': '10px'},  # Set margin to the left and right
+    className="sticky-top mb-2"
 ),
 
     dbc.Row([
@@ -206,7 +206,7 @@ app.layout = dbc.Container([
                     lg={"size": 10, "offset": 1},  # Adjust lg size and offset
                 ),
 
-    ], justify='center', className="container-fluid"), 
+    ], justify='center', className="container-fluid mb-3"), 
 
     dbc.Row([
             dbc.Button("Reset", 
