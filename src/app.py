@@ -183,30 +183,37 @@ app.layout = dbc.Container([
         ),
     ], justify='evenly'),
 
+    # Row with the graph
     dbc.Row([
         dbc.Col([
+                        html.H4("Number of Participants and Medals by Country"),
+            html.P("This graph shows .......", id='mapbox_medal_graph', className='text-primary'),
             dcc.Graph(
                 id="graph_mapbox_2",    
-                figure={})
-                ], xs=12, sm=11, md=10, lg=5, width='auto'),    
-    ],justify='center', className="container-fluid mb-3"),
+                figure={}
+            )
+        ], width=5, xs=12, className="offset-4 ml-2")
+    ], justify='center', className="container-fluid mb-3"),
 
-        # Row containing dropdowns and graphs
+    # Row with dropdowns and graph
     dbc.Row([
         dbc.Col([
             html.H4("Number of Participants and Gender Distribution by Country"),
-            html.P("Choose weather to display number of participants or gender distibution by country.",id='p_gender_medal_graph', className='text-primary'),
-            dcc.Dropdown(id='country_dropdown_left', 
-                    className='mb-1 text-info', 
-                    options=["Medals", "Gender ratio"], 
-                    placeholder='Sort by medals or gender ratio'),
+            html.P("Choose whether to display the number of participants or gender distribution by country.", id='p_gender_medal_graph', className='text-primary'),
+            dcc.Dropdown(
+                id='country_dropdown_left', 
+                className='mb-1 text-info', 
+                options=["Medals", "Gender ratio"], 
+                placeholder='Sort by medals or gender ratio',
+                style={'width': '50%'},
+            ),
+            dcc.Graph(
+                id="graph_gender_or_medals_mapbox", 
+                figure={}
+            ),
+        ], width=5, xs=12, className="offset-4 ml-2")
+    ], justify='center', className="container-fluid mb-3"),
 
-                    dcc.Graph(id="graph_gender_or_medals_mapbox", figure={}),
-                ], width={"size": 10, "offset": 1},  # Adjust width and offset
-                    lg={"size": 10, "offset": 1},  # Adjust lg size and offset
-                ),
-
-    ], justify='center', className="container-fluid mb-3"), 
 
     dbc.Row([
             dbc.Button("Reset", 
