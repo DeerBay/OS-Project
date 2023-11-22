@@ -12,6 +12,8 @@ nbformat = "*"
 dash-bootstrap-components = "*"
 dash-bootstrap-templates = "*"
 dash-tools = "*"
+fuzzywuzzy = "*"
+python-levenshtein = "*"
 
 [dev-packages]
 
