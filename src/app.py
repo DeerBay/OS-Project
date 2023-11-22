@@ -74,55 +74,40 @@ app.layout = html.Div([
         className="mb-3 mt-3", # Adding marginal bottom and top
     ),
     
-    # Cards containing dropdowns and graphs
+    # Row containing dropdowns and graphs
     dbc.Row([
         dbc.Col([
-            dbc.Card(
-                [
-                    dbc.CardHeader("Left Graph"),
-                    dbc.CardBody([
-                        dcc.Dropdown(id='country_dropdown_left',
-                                     className='ml-3 mr-3 mb-3 mt-3 text-info',
-                                     options=["Medals", "Gender ratio"],
-                                     placeholder='Select to see participants with relation to medals or gender ratio'),
-                        dcc.Graph(id="graph_1_left", figure={}),
-                    ]),
-                ],
-                className="mb-3",
-            ),
-        ], xs=12, sm=11, md=10, lg=5),
-
+                dcc.Dropdown(id='country_dropdown_left', 
+                    className='ml-3 mr-3 mb-3 mt-3 text-info', 
+                    options=["Medals", "Gender ratio"], 
+                    placeholder='Select to see participants with relation to medals or gender ratio'),
+                    dcc.Graph(id="graph_1_left",    
+                    figure={}),
+                ], xs=12, sm=11, md=10, lg=5,width='auto'),
         dbc.Col([
-            dbc.Card(
-                [
-                    dbc.CardHeader("Right Graph"),
-                    dbc.CardBody([
-                        dcc.Dropdown(id='country_dropdown_right',
-                                     className='ml-3 mr-3 mb-3 mt-3 text-info',
-                                     options=["Country", "Sport"],
-                                     placeholder='Select to sort by country or sport'),
-                        dcc.Graph(id="graph_1_right", figure={}),
-                    ]),
-                ],
-                className="mb-3",
-            ),
-        ], xs=12, sm=11, md=10, lg=5),
+                dcc.Dropdown(id='country_dropdown_right', 
+                    className='ml-3 mr-3 mb-3 mt-3 text-info', 
+                    options=["Country", "Sport"], 
+                    placeholder='Select to sort by country or sport'), 
+                    dcc.Graph(id="graph_1_right",    
+                    figure={})],
+                    xs=12, sm=11, md=10, lg=5),
     ], justify='center', className="container-fluid"),  # Added container-fluid class for better responsiveness,
 
     dbc.Row([
-            dcc.Dropdown(id='year_dropdown', className='text-info mt-2 mb-1',
+            dcc.Dropdown(id='year_dropdown', className='text-info mt-2 mb-2',
                         multi=True, 
                         options=[years for years in sorted(athlete_events['Year'].unique())], 
                         placeholder='Select Year',
                         style={'width':'150px', 'margin-left': '10px', 'margin-right': '10px'},
             ),
-            dcc.Dropdown(id='sport_dropdown', className='text-info mt-2 mb-1',
+            dcc.Dropdown(id='sport_dropdown', className='text-info mt-2 mb-2',
                         multi=True, 
                         options=[sports for sports in sorted(athlete_events['Sport'].unique())], 
                         placeholder='Select Sport',
                         style={'width':'150px', 'margin-left': '10px', 'margin-right': '10px'},
             ),
-            dcc.Dropdown(id='season_dropdown', className='text-info',
+            dcc.Dropdown(id='season_dropdown', className='text-info mt-2 mb-2',
                         multi=True, 
                         options=[season for season in sorted(athlete_events['Season'].unique())], 
                         placeholder='Select Season',
@@ -130,27 +115,27 @@ app.layout = html.Div([
             ),
 
             dcc.Dropdown(id='sport_or_medal_dropdown', 
-                        className='text-info', 
+                        className='text-info mt-2 mb-2', 
                         options=["Sports", "Medals"], 
                         placeholder='Select to sort by Sports or Medals',
                         style={'width':'150px', 'margin-left': '10px', 'margin-right': '10px'}), 
                         
 
-            ], justify='center', class_name="mb-5"),
+    ], justify='center', className="mb-2"),
 
     dbc.Row([
         dbc.Col([
             dcc.Graph(
                 id="graph_1_down_left",    
                 figure={})
-                ], lg='6'),
+                ], xs=12, sm=11, md=10, lg=5, width='auto'),
 
         dbc.Col([
             dcc.Graph(
                 id="graph_1_down_right",    
                 figure={})
-                ], lg='6'),
-            ]), 
+                ], xs=12, sm=11, md=10, lg=5, width='auto'),
+    ],justify='center', className="container-fluid mb-3"), 
 
     dbc.Row([
         dbc.Col(
