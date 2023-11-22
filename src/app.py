@@ -10,6 +10,8 @@ athlete_events = pd.read_csv("../data/final_df.csv")
 
 # Df Swedish Athletes
 sweden_athletes = pd.DataFrame(athlete_events[athlete_events["NOC"] == "SWE"])
+participants_medals= athlete_events(['Year', 'Season', 'Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude', 'Sport'], as_index=False)[['Name', 'Medal']].agg(
+{'Name': 'nunique', 'Medal': 'count'})
 
 # Loading template for graphs
 load_figure_template("quartz")
@@ -147,43 +149,16 @@ def update__top10_graph(year, sport, season):
 
 # Callback to update the graph based on dropdown selections
 @callback(
-    Output("graph_2_right", "figure"),
-    [
-        Input('year_dropdown', 'value'),
-        Input('sport_dropdown', 'value'),
-        Input('season_dropdown', 'value'),
-
-    ]
-)
-def update_top10_gold_graph(year, sport, season):
-    # Filter the data based on the selected values
-    filtered_data = sweden_athletes
-    if year:
-        filtered_data = filtered_data[filtered_data['Year'].isin(year)]
-    if sport:
-        filtered_data = filtered_data[filtered_data['Sport'].isin(sport)]
-    if season:
-        filtered_data = filtered_data[filtered_data['Season'].isin(season)]
-
-    # Grouping by sport and counting medals
-    medals_per_sport = filtered_data.groupby(["Sport", "Medal"], as_index=False).size()
-
-    # Filter to include only Gold medals
-    medals_per_sport = medals_per_sport[medals_per_sport['Medal'].isin(['Gold'])]
-
-    # Sort values on the number of medals in descending order, resetting index and displaying the result in a plot.
-    fig = px.bar(
-        data_frame=medals_per_sport.sort_values(by='size', ascending=False, ignore_index=True).head(10),
-        x='Sport',
-        y='size',
-        labels={'size': 'Number of Medals'},
-        title="Top 10 Sports Gold Medals",
-        barmode='group',
+    Output("graph_1_left", "figure"),
     )
-    fig.update_xaxes(tickangle=45)
 
-    return fig
-
+def figure_one(year, country):
+    df = athlete_events.query("Year == @year & Country == @country")
+    # Dataframe for participants and medals per year
+    participants_medals= df.groupby(['Year', 'Season', 'Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude', 'Sport'], as_index=False)[['Name', 'Medal']].agg(
+    {'Name': 'nunique', 'Medal': 'count'})
+    return ...
+    ...
 
 if __name__ == "__main__":
     app.run(debug=True, port='3232')
