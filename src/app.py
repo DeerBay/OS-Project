@@ -484,5 +484,5 @@ def update_top10_gold_graph(year, sport, season):
     return fig   
 
 if __name__ == "__main__":
-    app.run(debug=True, port='3232')
+    app.run(debug=True)
     
