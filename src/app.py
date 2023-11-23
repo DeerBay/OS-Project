@@ -109,30 +109,6 @@ app.layout = dbc.Container([
             ),
             xs=12, sm=6, md=4, lg=3
         ),
-        dbc.Col(
-            dcc.Dropdown(
-                id='sport_or_medal_dropdown', 
-                className='text-info mt-1 mb-1', 
-                options=[
-                    {'label': 'Sort by Sports', 'value': 'Sports'},
-                    {'label': 'Sort by Medals', 'value': 'Medals'}
-                ], 
-                placeholder='Sort by Sports or Medals',
-                style={'width': '100%'},
-            ),
-            xs=12, sm=6, md=4, lg=3
-        ),
-        dbc.Col(
-            dcc.Dropdown(id='country_dropdown_right', 
-                    className='mb-1 mt-1 text-info', 
-                    options=[
-                    {'label': 'Sort by Sports', 'value': 'Sport'},
-                    {'label': 'Sort by Countries', 'value': 'Country'}],
-                    placeholder='Sort by Country or Sport',
-                    style={'width': '100%'},
-            ), 
-            xs=12, sm=6, md=4, lg=3
-        ), 
     ],
     justify='center',
     style={'margin-left': '10px', 'margin-right': '10px'},  # Set margin to the left and right
@@ -144,6 +120,14 @@ app.layout = dbc.Container([
             dbc.Card([
                     dbc.CardHeader(html.H3("Medals All Countries", className="text-body-tertiary", id="header_graph_all_countries")),
                     dbc.CardBody([
+                    dcc.Dropdown(id='country_dropdown_right', 
+                    className='mb-1 mt-1 text-info', 
+                    options=[
+                    {'label': 'Sort by Sports', 'value': 'Sport'},
+                    {'label': 'Sort by Countries', 'value': 'Country'}],
+                    placeholder='Sort by Country or Sport',
+                    style={'width': '100%'},
+            ), 
                         dcc.Graph(id="graph_all_countries_sunburst", figure={}),
                         ])
             ], className="mb-3"
@@ -153,8 +137,17 @@ app.layout = dbc.Container([
             dbc.Card([
                     dbc.CardHeader(html.H3("Medals Sweden", className="text-body-tertiary", id="header_graph_sweden")),
                     dbc.CardBody([
+                        dcc.Dropdown(
+                        id='sport_or_medal_dropdown', 
+                        className='text-info mt-1 mb-1', 
+                        options=[
+                            {'label': 'Sort by Sports', 'value': 'Sports'},
+                            {'label': 'Sort by Medals', 'value': 'Medals'}
+                        ], 
+                        placeholder='Sort by Sports or Medals',
+                        style={'width': '100%'}),
                         dcc.Graph(id="graph_sweden_sunburst", figure={}),
-                        ])
+                        ]), 
             ], className="mb-3"
             ),xs=12, sm=11, md=10, lg=5
         ),
@@ -185,21 +178,18 @@ app.layout = dbc.Container([
 
     # Row with the graph
     dbc.Row([
-        dbc.Col([
-                        html.H4("Number of Participants and Medals by Country"),
-            html.P("This graph shows .......", id='mapbox_medal_graph', className='text-primary'),
+            html.H4("Number of Participants and Medals by Country"),
             dcc.Graph(
                 id="graph_mapbox_2",    
-                figure={}
-            )
-        ], width=5, xs=12, className="offset-4 ml-2")
-    ], justify='center', className="container-fluid mb-3"),
+                figure={}, 
+            ),
+        ], className="offset-3 mb-3"), 
+
+ 
 
     # Row with dropdowns and graph
     dbc.Row([
-        dbc.Col([
             html.H4("Number of Participants and Gender Distribution by Country"),
-            html.P("Choose whether to display the number of participants or gender distribution by country.", id='p_gender_medal_graph', className='text-primary'),
             dcc.Dropdown(
                 id='country_dropdown_left', 
                 className='mb-1 text-info', 
@@ -211,10 +201,8 @@ app.layout = dbc.Container([
                 id="graph_gender_or_medals_mapbox", 
                 figure={}
             ),
-        ], width=5, xs=12, className="offset-4 ml-2")
-    ], justify='center', className="container-fluid mb-3"),
-
-
+        ], className="offset-3 mb-3"),
+  
     dbc.Row([
             dbc.Button("Reset", 
                     id='reset-button', 
@@ -229,6 +217,13 @@ app.layout = dbc.Container([
 ], 
 fluid=True
 )
+
+
+
+
+
+
+# Functionality 
 
 
 @callback(
@@ -331,21 +326,21 @@ def figure_three(years, sports, sort):
             height=800, width= 760, hover_name="Country",  mapbox_style="open-street-map", 
             center=dict(lat=0, lon=0), zoom=1.2, opacity=0.5,
             title="Size according to count of participants and Season")
-        elif years not in [None, "", []] and sports in [None, "", []]:
+        if years not in [None, "", []] and sports in [None, "", []]:
             df = participants_medals.query("Year==@years")
             fig = px.scatter_mapbox(df, lat="Country_latitude", 
             lon="Country_longitude", size="Participants", color="Medal", 
             height=800, width= 760,hover_name="Country",  mapbox_style="open-street-map", 
             center=dict(lat=0, lon=0), zoom=1,
             title="Size according to count of participants and Season")
-        elif years in [None, "", []] and sports not in [None, "", []]:
+        if years in [None, "", []] and sports not in [None, "", []]:
             df = participants_medals_sport.query("Sport==@sports")
             fig = px.scatter_mapbox(df, lat="Country_latitude", 
             lon="Country_longitude", size="Participants", color="Medal", 
             height=800,width= 760, hover_name="Country",  mapbox_style="open-street-map",
             center=dict(lat=0, lon=0), zoom=1, 
             title="Size according to count of participants and Season")
-        elif years not in [None, "", []] and sports not in [None, "", []]:
+        if years not in [None, "", []] and sports not in [None, "", []]:
             df = participants_medals_sport_year.query("Year==@years")
             df = df.query("Sport==@sports")
             fig = px.scatter_mapbox(df, lat="Country_latitude", 
@@ -353,7 +348,7 @@ def figure_three(years, sports, sort):
             height=800, width= 760,hover_name="Country",  mapbox_style="open-street-map",
             center=dict(lat=0, lon=0), zoom=1, 
             title="Size according to count of participants and Season")
-    if sort =="Summer":
+    elif sort =="Summer":
         if (years in [None, "", []]) and (sports in [None, "", []]):
             df = participants_medals_season_start
             df = df.query('Season == "Summer"')
@@ -362,7 +357,7 @@ def figure_three(years, sports, sort):
             height=800, width= 760, hover_name="Country",  mapbox_style="open-street-map", 
             center=dict(lat=0, lon=0), zoom=1.2, opacity=0.5,
             title="Size according to count of participants and Season")
-        elif years not in [None, "", []] and sports in [None, "", []]:
+        if years not in [None, "", []] and sports in [None, "", []]:
             df = participants_medals_season.query("Year==@years")
             df = df.query('Season == "Summer"')
             fig = px.scatter_mapbox(df, lat="Country_latitude", 
@@ -370,7 +365,7 @@ def figure_three(years, sports, sort):
             height=800, width= 760,hover_name="Country",  mapbox_style="open-street-map", 
             center=dict(lat=0, lon=0), zoom=1,
             title="Size according to count of participants and Season")
-        elif years in [None, "", []] and sports not in [None, "", []]:
+        if years in [None, "", []] and sports not in [None, "", []]:
             df = participants_medals_season.query("Sport==@sports")
             df  = df.query('Season == "Summer"')
             fig = px.scatter_mapbox(df, lat="Country_latitude", 
@@ -378,7 +373,7 @@ def figure_three(years, sports, sort):
             height=800,width= 760, hover_name="Country",  mapbox_style="open-street-map",
             center=dict(lat=0, lon=0), zoom=1, 
             title="Size according to count of participants and Season")
-        elif years not in [None, "", []] and sports not in [None, "", []]:
+        if years not in [None, "", []] and sports not in [None, "", []]:
             df = participants_medals_season.query("Year==@years")
             df = df.query("Sport==@sports")
             df  = df.query('Season == "Summer"')    
@@ -387,7 +382,7 @@ def figure_three(years, sports, sort):
             height=800, width= 760,hover_name="Country",  mapbox_style="open-street-map",
             center=dict(lat=0, lon=0), zoom=1, 
             title="Size according to count of participants and Season")
-    elif sort =="Winter":
+    else:
         if (years in [None, "", []]) and (sports in [None, "", []]):
             df = participants_medals_season_start
             df = df.query('Season == "Winter"')
@@ -396,7 +391,7 @@ def figure_three(years, sports, sort):
             height=800, width= 760, hover_name="Country",  mapbox_style="open-street-map", 
             center=dict(lat=0, lon=0), zoom=1.2, opacity=0.5,
             title="Size according to count of participants and Season")
-        elif years not in [None, "", []] and sports in [None, "", []]:
+        if years not in [None, "", []] and sports in [None, "", []]:
             df = participants_medals_season.query("Year==@years")
             df = df.query('Season == "Winter"')
             fig = px.scatter_mapbox(df, lat="Country_latitude", 
@@ -404,7 +399,7 @@ def figure_three(years, sports, sort):
             height=800, width= 760,hover_name="Country",  mapbox_style="open-street-map", 
             center=dict(lat=0, lon=0), zoom=1,
             title="Size according to count of participants and Season")
-        elif years in [None, "", []] and sports not in [None, "", []]:
+        if years in [None, "", []] and sports not in [None, "", []]:
             df = participants_medals_season.query("Sport==@sports")
             df = df.query('Season == "Winter"')
             fig = px.scatter_mapbox(df, lat="Country_latitude", 
@@ -412,7 +407,7 @@ def figure_three(years, sports, sort):
             height=800,width= 760, hover_name="Country",  mapbox_style="open-street-map",
             center=dict(lat=0, lon=0), zoom=1, 
             title="Size according to count of participants and Season")
-        elif years not in [None, "", []] and sports not in [None, "", []]:
+        if years not in [None, "", []] and sports not in [None, "", []]:
             df = participants_medals_season.query("Year==@years")
             df = df.query("Sport==@sports")
             df = df.query('Season == "Winter"')   
@@ -421,9 +416,8 @@ def figure_three(years, sports, sort):
             height=800, width= 760,hover_name="Country",  mapbox_style="open-street-map",
             center=dict(lat=0, lon=0), zoom=1, 
             title="Size according to count of participants and Season")
-            
+        
     fig.update_mapboxes(bounds_east=180, bounds_west=-180, bounds_north=90, bounds_south=-90)
-    
     fig.update_layout(                       
     mapbox_style="white-bg",
     mapbox_layers=[
@@ -437,6 +431,9 @@ def figure_three(years, sports, sort):
     }
     ])
     return fig
+
+
+
 
 @callback(
     Output("graph_sweden_sunburst", "figure"),
