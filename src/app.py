@@ -69,23 +69,17 @@ server = app.server
 app.layout = dbc.Container([
 
     dbc.Row(
-        [dbc.Col(html.H1("Olympic Games Achievements 1896-2016", className="text-center text-primary")),], className="mx-3 mb-3 mt-3", # Adding marginal all around
+        [
+        dbc.Col(html.H1("Olympic Games Achievements 1896-2016", className="text-center text-primary")),
+        ],
+        className="mb-3 mt-3", # Adding marginal bottom and top
     ),
-
-    dbc.Row(
-    [
-        dbc.Col(html.P("Welcome to the Olympic Data Explorer! This interactive dashboard allows you to explore the distribution of Olympic medals and gender participation for Sweden in various Olympic Games. You can also compare these statistics with another country of your choice."), className="text-center text-secondary"),
-    ],
-    className="mx-5 mb-3",  # Adding marginal all around
-),
-
-
     dbc.Row(
     [
         dbc.Col(
             dcc.Dropdown(
                 id='year_dropdown',
-                className='text-info m-1',
+                className='text-info mt-1 mb-1',
                 multi=True, 
                 options=[{'label': year, 'value': year} for year in sorted(athlete_events['Year'].unique())], 
                 placeholder='Select Year',
@@ -96,7 +90,7 @@ app.layout = dbc.Container([
         dbc.Col(
             dcc.Dropdown(
                 id='sport_dropdown',
-                className='text-info m-1',
+                className='text-info mt-1 mb-1',
                 multi=True, 
                 options=[{'label': sport, 'value': sport} for sport in sorted(athlete_events['Sport'].unique())], 
                 placeholder='Select Sport',
@@ -107,7 +101,7 @@ app.layout = dbc.Container([
         dbc.Col(
             dcc.Dropdown(
                 id='season_dropdown',
-                className='text-info m-1',
+                className='text-info mt-1 mb-1',
                 multi=True, 
                 options=['Summer', 'Winter'], 
                 placeholder='Select Season',
@@ -115,30 +109,6 @@ app.layout = dbc.Container([
             ),
             xs=12, sm=6, md=4, lg=3
         ),
-        dbc.Col(
-            dcc.Dropdown(
-                id='sport_or_medal_dropdown', 
-                className='text-info m-1', 
-                options=[
-                    {'label': 'Sort by Sports', 'value': 'Sports'},
-                    {'label': 'Sort by Medals', 'value': 'Medals'}
-                ], 
-                placeholder='Sort by Sports or Medals',
-                style={'width': '100%'},
-            ),
-            xs=12, sm=6, md=4, lg=3
-        ),
-        dbc.Col(
-            dcc.Dropdown(id='country_dropdown_right', 
-                    className='m-1 text-info', 
-                    options=[
-                    {'label': 'Sort by Sports', 'value': 'Sport'},
-                    {'label': 'Sort by Countries', 'value': 'Country'}],
-                    placeholder='Sort by Country or Sport',
-                    style={'width': '100%'},
-            ), 
-            xs=12, sm=6, md=4, lg=3
-        ), 
     ],
     justify='center',
     style={'margin-left': '10px', 'margin-right': '10px'},  # Set margin to the left and right
@@ -208,9 +178,7 @@ app.layout = dbc.Container([
 
     # Row with the graph
     dbc.Row([
-        dbc.Col([
             html.H4("Number of Participants and Medals by Country"),
-            #html.P("This graph illustrates the distribution of medals by country on a Mapbox plot. The size of each marker corresponds to the number of participations from that country. Larger markers indicate a higher number of participations by the country.", id='mapbox_medal_graph', className='text-info "mx-5 mb-3'),  # Adding marginal all around
             dcc.Graph(
                 id="graph_mapbox_2",    
                 figure={}, 
@@ -222,7 +190,6 @@ app.layout = dbc.Container([
     # Row with dropdowns and graph
     dbc.Row([
             html.H4("Number of Participants and Gender Distribution by Country"),
-            #html.P("Choose whether to display the number of participants or gender distribution by country.", id='p_gender_medal_graph', className='text-info'),
             dcc.Dropdown(
                 id='country_dropdown_left', 
                 className='mb-1 text-info', 
@@ -249,7 +216,7 @@ app.layout = dbc.Container([
 
 ], 
 fluid=True
-)])
+)
 
 
 
@@ -352,7 +319,6 @@ Input("sport_dropdown", "value"),
 Input("season_dropdown", "value")
 )
 def figure_three(years, sports, sort):
-    df = participants_medals_season_start
     if sort in [None, "", []]:
         if (years in [None, "", []]) and (sports in [None, "", []]):
             fig = px.scatter_mapbox(participants_medals_start, lat="Country_latitude", 
@@ -416,7 +382,7 @@ def figure_three(years, sports, sort):
             height=800, width= 760,hover_name="Country",  mapbox_style="open-street-map",
             center=dict(lat=0, lon=0), zoom=1, 
             title="Size according to count of participants and Season")
-    elif sort:
+    else:
         if (years in [None, "", []]) and (sports in [None, "", []]):
             df = participants_medals_season_start
             df = df.query('Season == "Winter"')
