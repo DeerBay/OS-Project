@@ -68,12 +68,12 @@ server = app.server
 # Layout for App
 app.layout = dbc.Container([
 
+    ################# Header ##################
     dbc.Row(
-        [
-        dbc.Col(html.H1("Olympic Games Achievements 1896-2016", className="text-center text-primary")),
-        ],
+        [html.H1("Olympic Games Achievements 1896-2016", className="text-center text-primary")],
         className="mb-3 mt-3", # Adding marginal bottom and top
     ),
+    ################# Dropdown row ##############
     dbc.Row(
     [
         dbc.Col(
@@ -111,13 +111,15 @@ app.layout = dbc.Container([
         ),
     ],
     justify='center',
-    style={'margin-left': '10px', 'margin-right': '10px'},  # Set margin to the left and right
-    className="sticky-top mb-2"
+    style={'margin-left': '10px', 'margin-right': '10px'},
+    className="sticky-top mb-2" #Sticky-top to fix it to the top of the window
 ),
+
+    ############# Graphs ################
 
     dbc.Row([
         dbc.Col(
-            dbc.Card([
+            dbc.Card([ # To make a "card" or a frame to the object inside
                     dbc.CardHeader(html.H3("Medals All Countries", className="text-body-tertiary", id="header_graph_all_countries")),
                     dbc.CardBody([
                     dcc.Dropdown(id='country_dropdown_right', 
@@ -176,7 +178,7 @@ app.layout = dbc.Container([
         ),
     ], justify='evenly'),
 
-    # Row with the graph
+ ############## Mapbox Graphs ###############
     dbc.Row([
             html.H4("Number of Participants and Medals by Country"),
             dcc.Graph(
@@ -185,10 +187,7 @@ app.layout = dbc.Container([
             ),
         ], className="offset-3 mb-3"), 
 
- 
-
-    # Row with dropdowns and graph
-    dbc.Row([
+     dbc.Row([
             html.H4("Number of Participants and Gender Distribution by Country"),
             dcc.Dropdown(
                 id='country_dropdown_left', 
@@ -203,6 +202,7 @@ app.layout = dbc.Container([
             ),
         ], className="offset-3 mb-3"),
   
+  ########## Reset button and link to GitHub ##############
     dbc.Row([
             dbc.Button("Reset", 
                     id='reset-button', 
@@ -216,14 +216,9 @@ app.layout = dbc.Container([
 
 ], 
 fluid=True
-)
+) # End of container
 
-
-
-
-
-
-# Functionality 
+############ Callback Decoraters and functions ############ 
 
 
 @callback(
