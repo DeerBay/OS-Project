@@ -179,7 +179,6 @@ app.layout = dbc.Container([
     # Row with the graph
     dbc.Row([
             html.H4("Number of Participants and Medals by Country"),
-            html.P("This graph shows .......", id='mapbox_medal_graph', className='text-primary'),
             dcc.Graph(
                 id="graph_mapbox_2",    
                 figure={}, 
@@ -191,7 +190,6 @@ app.layout = dbc.Container([
     # Row with dropdowns and graph
     dbc.Row([
             html.H4("Number of Participants and Gender Distribution by Country"),
-            html.P("Choose whether to display the number of participants or gender distribution by country.", id='p_gender_medal_graph', className='text-primary'),
             dcc.Dropdown(
                 id='country_dropdown_left', 
                 className='mb-1 text-info', 
