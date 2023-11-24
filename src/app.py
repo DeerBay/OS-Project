@@ -195,7 +195,7 @@ app.layout = dbc.Container([
 
 ], 
 fluid=True
-) # End of container
+) # End of container 
 
 ############ Callback Decoraters to define functions ############ 
 
@@ -454,5 +454,5 @@ def figure_six(years, sports, sort):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5151)
+    app.run(debug=True)
     
