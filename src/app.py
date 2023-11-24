@@ -472,5 +472,5 @@ def figure_six(years, sports, sort):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, jupyter_mode = 'external')
+    app.run(debug=True, port=5151)
     
