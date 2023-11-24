@@ -1,55 +1,29 @@
 # Imports of needed libraries
-from dash import Dash, html, dcc, callback, Output, Input, dash_table
+from dash import Dash, html, dcc, callback, Output, Input
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import pandas as pd
 from dash_bootstrap_templates import load_figure_template
 
-# Df All Athletes 
+############### Preparation of dataframes for the app ###############
+
+# Read the required datafiles for the app
 athlete_events = pd.read_csv("../data/final_df.csv", low_memory=False)
-
-# Rename column "Name" to "Participants"
-athlete_events = athlete_events.rename(columns={"Name": "Participants"})
-
-# Df Swedish Athletes
-sweden_athletes = pd.DataFrame(athlete_events[athlete_events["NOC"] == "SWE"])
-
 gender_ratios = pd.read_csv("../data/gender_ratios.csv")
 
-participants_medals= athlete_events.groupby(['Year','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
-    {'Participants': 'nunique', 'Medal': 'count'})
+# Changing the NaN values in the Medal column to "No Medal"
+athlete_events['Medal'] = athlete_events['Medal'].fillna('No Medal')
+# Creating column Number of Medals and mapping the Medal column to values of 1 for medal and 0 for NaN value
+athlete_events['Number of Medals'] = athlete_events['Medal'].map({'Gold': 1, 'Silver': 1, 'Bronze': 1, 'No Medal': 0})
 
-participants_medals_start = participants_medals.groupby(['Country','Continent' , 
-                                                        'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
-
-participants_medals_sport = athlete_events.groupby(['Year', 'Country', 'Sport', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
-    {'Participants': 'nunique', 'Medal': 'count'})
-
-participants_medals_sport = athlete_events.groupby(['Year','Country', 'Sport', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
-    {'Participants': 'nunique', 'Medal': 'count'})
-
-participants_medals_sport_total = participants_medals_sport.groupby(['Country','Sport' , 'Continent',
-                                                        'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
-
-participants_medals_sport_year = participants_medals_sport.groupby(['Year','Country','Sport' , 'Continent',
-                                                        'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
-
-medal_distribution = athlete_events.groupby(['Year','Country', 'Sport', 'Medal']).size().reset_index(name="Number of Medals")
+# Grouping to get the final dataframe for the app - sum of participants and number of medals count for the desired columns
+grouped_final_athlete_events = athlete_events.groupby(['Year','Season', 'Medal', 'Country', 'Sport', 'Country_latitude', 'Country_longitude']).agg({
+    'Participants': 'nunique',
+    'Number of Medals': 'sum'}).reset_index()
 
 
-medal_distribution_sweden = medal_distribution.query('Country == "Sweden"')
 
-
-participants_medals_season = athlete_events.groupby(['Year','Season','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
-    {'Participants': 'nunique', 'Medal': 'count'})
-
-
-participants_medals_season_start= participants_medals_season.groupby(['Country','Season','Continent' , 
-                                                        'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
+############### Creating the app ###############
 
 # Loading template for graphs
 load_figure_template("quartz")
@@ -206,7 +180,7 @@ app.layout = dbc.Container([
     dbc.Row([
             dbc.Button("Reset", 
                     id='reset-button', 
-                    href="https://iths-olympics.onrender.com",   
+                    #href="https://iths-olympics.onrender.com",   
                     title='Resets all graphs',
                     style={'width': '150px'}), # Hover text
 
@@ -224,55 +198,7 @@ fluid=True
 ############ Callback Decoraters to define functions ############ 
 
 
-@callback(
-    Output("graph_gender_or_medals_mapbox", "figure"),
-    Input("year_dropdown", "value"),
-    Input("sport_dropdown", "value"),
-    Input("country_dropdown_left", "value")
-)
-def figure_one(years, sports, sort):
-    if sort == "Medals" or sort in [None, "", []]:
-        if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.scatter_mapbox(participants_medals_start, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-             hover_name="Country",  mapbox_style="open-street-map", 
-            center=dict(lat=0, lon=0), zoom=1.2, opacity=0.5,
-            title="Size according to count of participants")
-        elif years not in [None, "", []] and sports in [None, "", []]:
-            df = participants_medals.query("Year==@years")
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map", 
-            center=dict(lat=0, lon=0), zoom=1,
-            title="Size according to count of participants")
-        elif years in [None, "", []] and sports not in [None, "", []]:
-            df = participants_medals_sport.query("Sport==@sports")
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map",
-            center=dict(lat=0, lon=0), zoom=1, 
-            title="Size according to count of participants")
-        elif years not in [None, "", []] and sports not in [None, "", []]:
-            df = participants_medals_sport_year.query("Year==@years")
-            df = df.query("Sport==@sports")
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map",
-            center=dict(lat=0, lon=0), zoom=1, 
-            title="Size according to count of participants")
-    elif sort =="Gender ratio":
-        df = gender_ratios
-        fig = px.scatter_mapbox(df, animation_frame = "Year", lat="Country_latitude",
-                lon="Country_longitude", size="Count", color="Ratio", 
-                hover_name="Country",  mapbox_style="open-street-map", 
-                center=dict(lat=0, lon=0), zoom=1, title="Gender ratios over the years")
-
-    fig.update_mapboxes(bounds_east=180, bounds_west=-180, bounds_north=90, bounds_south=-90)
-    
-    return fig
-
-
-
+# Figure one; Sunburst graph sorted by number of medals per country per sport/year
 @callback(
     Output("graph_all_countries_sunburst", "figure"),
     Input("year_dropdown", "value"),
@@ -280,199 +206,86 @@ def figure_one(years, sports, sort):
     Input("country_dropdown_right", "value"),
 
 )
-def figure_two(years, sports, sort):
+def figure_one(years, sports, sort):
     if sort == "Sport" or sort in [None, "", []]:
         if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.sunburst(medal_distribution.sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80), values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
+            fig = px.sunburst(grouped_final_athlete_events.sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80), values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
         elif years not in [None, "", []] and sports in [None, "", []]:
-            df = medal_distribution.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
+            df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
             fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
         elif years in [None, "", []] and sports not in [None, "", []]:
-            df = medal_distribution.query("Sport==@sports").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
+            df = grouped_final_athlete_events.query("Sport==@sports").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
             fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
         elif years not in [None, "", []] and sports not in [None, "", []]:
-            df = medal_distribution.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
+            df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
             df = df.query("Sport==@sports")
             fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
-        return fig
-    elif sort =="Country":   
-        if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.sunburst(medal_distribution.sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80), values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
-        elif years not in [None, "", []] and sports in [None, "", []]:
-            df = medal_distribution.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-            fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
-        elif years in [None, "", []] and sports not in [None, "", []]:
-            df = medal_distribution.query("Sport==@sports").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-            fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
-        elif years not in [None, "", []] and sports not in [None, "", []]:
-            df = medal_distribution.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-            df = df.query("Sport==@sports")
-            fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
-        return fig
-
-@callback(
-Output("graph_mapbox_2", "figure"),
-Input("year_dropdown", "value"),
-Input("sport_dropdown", "value"),
-Input("season_dropdown", "value")
-)
-def figure_three(years, sports, sort):
-    if sort in [None, "", []]:
-        if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.scatter_mapbox(participants_medals_start, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-             hover_name="Country",  mapbox_style="open-street-map", 
-            center=dict(lat=0, lon=0), zoom=1.2, opacity=0.5,
-            title="Size according to count of participants and Season")
-        if years not in [None, "", []] and sports in [None, "", []]:
-            df = participants_medals.query("Year==@years")
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map", 
-            center=dict(lat=0, lon=0), zoom=1,
-            title="Size according to count of participants and Season")
-        if years in [None, "", []] and sports not in [None, "", []]:
-            df = participants_medals_sport.query("Sport==@sports")
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map",
-            center=dict(lat=0, lon=0), zoom=1, 
-            title="Size according to count of participants and Season")
-        if years not in [None, "", []] and sports not in [None, "", []]:
-            df = participants_medals_sport_year.query("Year==@years")
-            df = df.query("Sport==@sports")
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map",
-            center=dict(lat=0, lon=0), zoom=1, 
-            title="Size according to count of participants and Season")
-    elif sort =="Summer":
-        if (years in [None, "", []]) and (sports in [None, "", []]):
-            df = participants_medals_season_start
-            df = df.query('Season == "Summer"')
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-             hover_name="Country",  mapbox_style="open-street-map", 
-            center=dict(lat=0, lon=0), zoom=1.2, opacity=0.5,
-            title="Size according to count of participants and Season")
-        if years not in [None, "", []] and sports in [None, "", []]:
-            df = participants_medals_season.query("Year==@years")
-            df = df.query('Season == "Summer"')
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map", 
-            center=dict(lat=0, lon=0), zoom=1,
-            title="Size according to count of participants and Season")
-        if years in [None, "", []] and sports not in [None, "", []]:
-            df = participants_medals_season.query("Sport==@sports")
-            df  = df.query('Season == "Summer"')
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map",
-            center=dict(lat=0, lon=0), zoom=1, 
-            title="Size according to count of participants and Season")
-        if years not in [None, "", []] and sports not in [None, "", []]:
-            df = participants_medals_season.query("Year==@years")
-            df = df.query("Sport==@sports")
-            df  = df.query('Season == "Summer"')    
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map",
-            center=dict(lat=0, lon=0), zoom=1, 
-            title="Size according to count of participants and Season")
     else:
         if (years in [None, "", []]) and (sports in [None, "", []]):
-            df = participants_medals_season_start
-            df = df.query('Season == "Winter"')
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-             hover_name="Country",  mapbox_style="open-street-map", 
-            center=dict(lat=0, lon=0), zoom=1.2, opacity=0.5,
-            title="Size according to count of participants and Season")
-        if years not in [None, "", []] and sports in [None, "", []]:
-            df = participants_medals_season.query("Year==@years")
-            df = df.query('Season == "Winter"')
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map", 
-            center=dict(lat=0, lon=0), zoom=1,
-            title="Size according to count of participants and Season")
-        if years in [None, "", []] and sports not in [None, "", []]:
-            df = participants_medals_season.query("Sport==@sports")
-            df = df.query('Season == "Winter"')
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map",
-            center=dict(lat=0, lon=0), zoom=1, 
-            title="Size according to count of participants and Season")
-        if years not in [None, "", []] and sports not in [None, "", []]:
-            df = participants_medals_season.query("Year==@years")
+            fig = px.sunburst(grouped_final_athlete_events.sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80), values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
+        elif years not in [None, "", []] and sports in [None, "", []]:
+            df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
+            fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
+        elif years in [None, "", []] and sports not in [None, "", []]:
+            df = grouped_final_athlete_events.query("Sport==@sports").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
+            fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
+        elif years not in [None, "", []] and sports not in [None, "", []]:
+            df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
             df = df.query("Sport==@sports")
-            df = df.query('Season == "Winter"')   
-            fig = px.scatter_mapbox(df, lat="Country_latitude", 
-            lon="Country_longitude", size="Participants", color="Medal", 
-            hover_name="Country",  mapbox_style="open-street-map",
-            center=dict(lat=0, lon=0), zoom=1, 
-            title="Size according to count of participants and Season")
-        
-    fig.update_mapboxes(bounds_east=180, bounds_west=-180, bounds_north=90, bounds_south=-90)
-    fig.update_layout(                       
-    mapbox_style="white-bg",
-    mapbox_layers=[
-    {
-    "below": 'traces',
-    "sourcetype": "raster",
-    "sourceattribution": "United States Geological Survey",
-    "source": [
-    "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}"
-    ]
-    }
-    ])
+            fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
     return fig
 
 
-
-
+# Figure two; Sunburst graph sorted by number of medals per sport/year for SWEDEN
 @callback(
     Output("graph_sweden_sunburst", "figure"),
     Input("year_dropdown", "value"),
     Input("sport_dropdown", "value"),
     Input("sport_or_medal_dropdown", "value"),
-
 )
-def figure_four(years, sports, sort):
+def figure_two(years, sports, sort):
     title_fig = "Medals and sports for team SWEDEN"
     if sort == "Sports" or sort in [None, "", []]:
         if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.sunburst(medal_distribution_sweden, values='Number of Medals', color_discrete_sequence=px.colors.qualitative.Pastel1, path=['Sport', 'Medal'], title = title_fig)
+            fig = px.sunburst(grouped_final_athlete_events.query("Country == 'Sweden'"), values='Number of Medals', 
+                color_discrete_sequence=px.colors.qualitative.Pastel1, path=['Sport', 'Medal'], title = title_fig)
         elif years not in [None, "", []] and sports in [None, "", []]:
-            df = medal_distribution_sweden.query("Year==@years")
-            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Medal'],color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
+            # Query for country Sweden and year 2016
+            df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
+            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Medal'],
+                color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
         elif years in [None, "", []] and sports not in [None, "", []]:
-            df = medal_distribution_sweden.query("Sport==@sports")
-            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Medal'],color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
+            df = grouped_final_athlete_events.query("Country == 'Sweden' and Sport==@sports")
+            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Medal'],
+                color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
         elif years not in [None, "", []] and sports not in [None, "", []]:
-            df = medal_distribution_sweden.query("Year==@years")
+            df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
             df = df.query("Sport==@sports")
-            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Medal'],color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
+            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Medal'],
+            color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
         return fig
-    elif sort =="Medals":   
+    else:   
         if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.sunburst(medal_distribution_sweden, values='Number of Medals', path=['Medal', 'Sport'],color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
+            fig = px.sunburst(grouped_final_athlete_events.query("Country == 'Sweden'"), values='Number of Medals', 
+                color_discrete_sequence=px.colors.qualitative.Pastel1, path=['Medal','Sport'], title = title_fig)
         elif years not in [None, "", []] and sports in [None, "", []]:
-            df = medal_distribution_sweden.query("Year==@years")
-            fig = px.sunburst(df, values='Number of Medals', path=['Medal', 'Sport'],color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
+            # Query for country Sweden and year 2016
+            df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
+            fig = px.sunburst(df, values='Number of Medals', path=['Medal','Sport'],
+                color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
         elif years in [None, "", []] and sports not in [None, "", []]:
-            df = medal_distribution_sweden.query("Sport==@sports")
-            fig = px.sunburst(df, values='Number of Medals', path=['Medal', 'Sport'],color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
+            df = grouped_final_athlete_events.query("Country == 'Sweden' and Sport==@sports")
+            fig = px.sunburst(df, values='Number of Medals', path=['Medal','Sport'],
+                color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
         elif years not in [None, "", []] and sports not in [None, "", []]:
-            df = medal_distribution_sweden.query("Year==@years")
+            df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
             df = df.query("Sport==@sports")
-            fig = px.sunburst(df, values='Number of Medals', path=['Medal', 'Sport'],color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
+            fig = px.sunburst(df, values='Number of Medals', path=['Medal','Sport'],
+            color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
         return fig
 
 
- # Callback to update the graph based on dropdown selections
+# Figure three: Bar graph showing top 10 sports with the most medals in Sweden
 @callback(
     Output("graph_sweden_top10", "figure"),
     [
@@ -481,9 +294,10 @@ def figure_four(years, sports, sort):
         Input('season_dropdown', 'value'),
     ]
 )
-def update__top10_graph(year, sport, season):
+def figure_three(year, sport, season):
     # Filter the data based on the selected values
-    filtered_data = sweden_athletes
+    filtered_data = grouped_final_athlete_events.query("Country == 'Sweden'")
+
     if year:
         filtered_data = filtered_data[filtered_data['Year'].isin(year)]
     if sport:
@@ -492,14 +306,14 @@ def update__top10_graph(year, sport, season):
         filtered_data = filtered_data[filtered_data['Season'].isin(season)]
 
     # Grouping by sport and counting medals
-    medals_per_sport = filtered_data.groupby("Sport", as_index=False)["Medal"].count()
-
+    medals_per_sport = filtered_data[filtered_data['Number of Medals'] > 0].groupby("Sport", as_index=False)["Number of Medals"].count()
+    
     # Sort values on number of medals in descending order, resetting index and displaying the result in a plot.
     fig = px.bar(
-        data_frame=medals_per_sport.sort_values(by='Medal', ascending=False, ignore_index=True).head(10),
+        data_frame=medals_per_sport.sort_values(by='Number of Medals', ascending=False, ignore_index=True).head(10),
         x='Sport',
-        y='Medal',
-        labels={'Medal': 'Number of Medals'},
+        y='Number of Medals',
+        labels={'Number of Medals': 'Number of Medals'},
         template='plotly_white',
         title="Top 10 Sports with the Most Medals",
         barmode='overlay',
@@ -508,7 +322,8 @@ def update__top10_graph(year, sport, season):
 
     return fig
 
-# Callback to update the graph based on dropdown selections
+
+#Figure four: Bar graph showing top 10 sports with the most gold medals in Sweden
 @callback(
     Output("graph_sweden_gold", "figure"),
     [
@@ -518,9 +333,9 @@ def update__top10_graph(year, sport, season):
 
     ]
 )
-def update_top10_gold_graph(year, sport, season):
+def figure_four(year, sport, season):
     # Filter the data based on the selected values
-    filtered_data = sweden_athletes
+    filtered_data = grouped_final_athlete_events.query("Country == 'Sweden'")
     if year:
         filtered_data = filtered_data[filtered_data['Year'].isin(year)]
     if sport:
@@ -529,17 +344,17 @@ def update_top10_gold_graph(year, sport, season):
         filtered_data = filtered_data[filtered_data['Season'].isin(season)]
 
     # Grouping by sport and counting medals
-    medals_per_sport = filtered_data.groupby(["Sport", "Medal"], as_index=False).size()
-
+    medals_per_sport = filtered_data[filtered_data['Number of Medals'] > 0].groupby(["Sport", "Medal"], as_index=False)["Number of Medals"].count()
+    
     # Filter to include only Gold medals
     medals_per_sport = medals_per_sport[medals_per_sport['Medal'].isin(['Gold'])]
 
     # Sort values on the number of medals in descending order, resetting index and displaying the result in a plot.
     fig = px.bar(
-        data_frame=medals_per_sport.sort_values(by='size', ascending=False, ignore_index=True).head(10),
+        data_frame=medals_per_sport.sort_values(by='Number of Medals', ascending=False, ignore_index=True).head(10),
         x='Sport',
-        y='size',
-        labels={'size': 'Number of Medals'},
+        y='Number of Medals',
+        labels={'Number of Medals': 'Number of Medals'},
         title="Top 10 Sports Gold Medals",
         barmode='group',
     )
@@ -547,6 +362,130 @@ def update_top10_gold_graph(year, sport, season):
 
     return fig   
 
+
+
+# Figure five: Mapbox graph showing participants and medals per country/year and season by choice
+@callback(
+Output("graph_mapbox_2", "figure"),
+Input("year_dropdown", "value"),
+Input("sport_dropdown", "value"),
+Input("season_dropdown", "value")
+)
+def figure_five(years, sports, sort):
+    if sort:
+        if (years in [None, "", []]) and (sports in [None, "", []]):
+            df = grouped_final_athlete_events.drop(columns=["Year","Sport","Medal"])
+            df = df.query("Season == @sort").groupby(
+                    ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                    {"Participants": "sum", "Number of Medals": "sum"})
+        elif years not in [None, "", []] and sports in [None, "", []]:
+            df = grouped_final_athlete_events.drop(columns=["Sport","Medal"]).query("Year==@years")
+            df = df.query("Season == @sort").groupby(
+                    ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                    {"Participants": "sum", "Number of Medals": "sum"})
+        elif years in [None, "", []] and sports not in [None, "", []]:
+            df = grouped_final_athlete_events.drop(columns=["Year","Medal"]).query("Sport==@sports")
+            df  = df.query("Season == @sort").groupby(
+                    ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                    {"Participants": "sum", "Number of Medals": "sum"})
+        elif years not in [None, "", []] and sports not in [None, "", []]:
+            df = grouped_final_athlete_events.drop(columns=["Medal"]).query("Year==@years")
+            df = df.query("Sport==@sports")
+            df  = df.query("Season == @sort").groupby(
+                    ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                    {"Participants": "sum", "Number of Medals": "sum"})  
+    else:
+        if (years in [None, "", []]) and (sports in [None, "", []]):
+            df = grouped_final_athlete_events.drop(columns=["Year","Sport","Season", "Medal"]).groupby(
+                    ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                    {"Participants": "sum", "Number of Medals": "sum"})
+        elif years not in [None, "", []] and sports in [None, "", []]:
+            df = grouped_final_athlete_events.drop(columns=["Sport","Season","Medal"]).query("Year==@years").groupby(
+                    ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                    {"Participants": "sum", "Number of Medals": "sum"})
+        elif years in [None, "", []] and sports not in [None, "", []]:
+            df = grouped_final_athlete_events.drop(columns=["Year","Season","Medal"]).query("Sport==@sports").groupby(
+                    ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                    {"Participants": "sum", "Number of Medals": "sum"})
+        elif years not in [None, "", []] and sports not in [None, "", []]:
+            df = grouped_final_athlete_events.drop(columns= ["Season","Medal"]).query("Year==@years")
+            df = df.query("Sport==@sports").groupby(
+                    ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                    {"Participants": "sum", "Number of Medals": "sum"})     
+
+    fig = px.scatter_mapbox(df, lat="Country_latitude", 
+        lon="Country_longitude", size="Participants", color="Number of Medals", 
+        hover_name="Country",  mapbox_style="open-street-map",
+        center=dict(lat=0, lon=0), zoom=1, 
+        title="Size according to count of participants and Season")    
+    fig.update_mapboxes(bounds_east=180, bounds_west=-180, bounds_north=90, bounds_south=-90)
+    fig.update_layout(                       
+        mapbox_style="white-bg",
+        mapbox_layers=[
+        {
+        "below": 'traces',
+        "sourcetype": "raster",
+        "sourceattribution": "United States Geological Survey",
+        "source": [
+        "https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}"
+        ]
+        }
+        ])
+    return fig
+
+
+# Figure six: Mapbox graph with participants and medals per country/year/sport, and dropdown alternative to see gender ratios per country/year/sport
+@callback(
+    Output("graph_gender_or_medals_mapbox", "figure"),
+    Input("year_dropdown", "value"),
+    Input("sport_dropdown", "value"),
+    Input("country_dropdown_left", "value")
+)
+def figure_six(years, sports, sort):
+    if sort == "Medals" or sort in [None, "", []]:
+        if (years in [None, "", []]) and (sports in [None, "", []]):
+            df = grouped_final_athlete_events.drop(columns=["Year","Sport","Season","Medal"]).groupby(
+                    ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                    {"Participants": "sum", "Number of Medals": "sum"})
+        elif years not in [None, "", []] and sports in [None, "", []]:
+            df = (grouped_final_athlete_events.drop(columns=["Sport","Season","Medal"])
+                  .query("Year==@years")
+                  .groupby(
+                    ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                    {"Participants": "sum", "Number of Medals": "sum"})
+                  )
+        elif years in [None, "", []] and sports not in [None, "", []]:
+            df = (grouped_final_athlete_events.drop(columns=["Year","Season","Medal"])
+                  .query("Sport==@sports")
+                  .groupby(
+                    ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                    {"Participants": "sum", "Number of Medals": "sum"})
+                  )
+        elif years not in [None, "", []] and sports not in [None, "", []]:
+            df = grouped_final_athlete_events.drop(columns= ["Season","Medal"]).query("Year==@years")
+            df = (df.query("Sport==@sports")
+                .groupby(
+                ["Country", "Country_latitude", "Country_longitude"], as_index= False).agg(
+                {"Participants": "sum", "Number of Medals": "sum"})
+            )
+
+    elif sort =="Gender ratio":
+        df = gender_ratios
+        fig = px.scatter_mapbox(df, animation_frame = "Year", lat="Country_latitude",
+                lon="Country_longitude", size="Count", color="Ratio", 
+                hover_name="Country",  mapbox_style="open-street-map", 
+                center=dict(lat=0, lon=0), zoom=1, title="Gender ratios over the years")
+        return fig
+    
+    fig = px.scatter_mapbox(df, lat="Country_latitude", lon="Country_longitude", size="Participants", color="Number of Medals", 
+                    hover_name="Country",  mapbox_style="open-street-map", 
+                    center=dict(lat=0, lon=0), zoom=1.2, opacity=0.5,
+                    title="Size according to count of participants")
+    
+    fig.update_mapboxes(bounds_east=180, bounds_west=-180, bounds_north=90, bounds_south=-90)
+    return fig
+
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5151)
+    app.run(debug=True, jupyter_mode = 'external')
     
