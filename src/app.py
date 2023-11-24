@@ -97,10 +97,11 @@ app.layout = dbc.Container([
                     dbc.CardHeader(html.H3("Medals All Countries", className="text-body-tertiary", id="header_graph_all_countries")),
                     dbc.CardBody([
                     dcc.Dropdown(id='country_dropdown_right', 
-                    className='mb-1 mt-1 text-info', 
+                    className='mb-1 mt-1 text-info',
                     options=[
                     {'label': 'Sort by Sports', 'value': 'Sport'},
                     {'label': 'Sort by Countries', 'value': 'Country'}],
+                    value='Country',
                     placeholder='Sort by Country or Sport',
                     style={'width': '100%'},
             ), 
@@ -120,6 +121,7 @@ app.layout = dbc.Container([
                             {'label': 'Sort by Sports', 'value': 'Sports'},
                             {'label': 'Sort by Medals', 'value': 'Medals'}
                         ], 
+                        value='Medals',
                         placeholder='Sort by Sports or Medals',
                         style={'width': '100%'}),
                         dcc.Graph(id="graph_sweden_sunburst", figure={}),
@@ -203,72 +205,54 @@ fluid=True
     Output("graph_all_countries_sunburst", "figure"),
     Input("year_dropdown", "value"),
     Input("sport_dropdown", "value"),
+    Input("season_dropdown", "value"),
     Input("country_dropdown_right", "value"),
 
 )
-def figure_one(years, sports, sort):
-    if sort == "Sport" or sort in [None, "", []]:
-        if (years in [None, "", []]) and (sports in [None, "", []]):
-            df = grouped_final_athlete_events.sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-        elif years not in [None, "", []] and sports in [None, "", []]:
-            df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-        elif years in [None, "", []] and sports not in [None, "", []]:
-            df = grouped_final_athlete_events.query("Sport==@sports").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-        elif years not in [None, "", []] and sports not in [None, "", []]:
-            df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-            df = df.query("Sport==@sports")
-        fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
-    else:
-        if (years in [None, "", []]) and (sports in [None, "", []]):
-            df = grouped_final_athlete_events.sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-        elif years not in [None, "", []] and sports in [None, "", []]:
-            df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-        elif years in [None, "", []] and sports not in [None, "", []]:
-            df = grouped_final_athlete_events.query("Sport==@sports").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-        elif years not in [None, "", []] and sports not in [None, "", []]:
-            df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-            df = df.query("Sport==@sports")
-        fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
+def figure_one(years, sports, season, sort):
+    df = grouped_final_athlete_events.sort_values(by="Number of Medals", ascending=False, ignore_index=True)
+    if years:
+        df = df.query("Year == @years")
+    if sports:
+        df = df.query("Sport == @sports")
+    if season:
+        df = df.query("Season == @season")
+    if sort == "Sport":
+        fig = px.sunburst(df.head(100), values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
+    else: # Default value is now by Country
+        fig = px.sunburst(df.head(100), values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
     return fig
-
 
 # Figure two; Sunburst graph sorted by number of medals per sport/year for SWEDEN
 @callback(
     Output("graph_sweden_sunburst", "figure"),
     Input("year_dropdown", "value"),
     Input("sport_dropdown", "value"),
+    Input("season_dropdown", "value"),
     Input("sport_or_medal_dropdown", "value"),
 )
-def figure_two(years, sports, sort):
-    title_fig = "Medals and sports for team SWEDEN"
-    if sort == "Sports" or sort in [None, "", []]:
-        if (years in [None, "", []]) and (sports in [None, "", []]):
-            df = grouped_final_athlete_events.query("Country == 'Sweden'")
-        elif years not in [None, "", []] and sports in [None, "", []]:
-            df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
-        elif years in [None, "", []] and sports not in [None, "", []]:
-            df = grouped_final_athlete_events.query("Country == 'Sweden' and Sport==@sports")
-        elif years not in [None, "", []] and sports not in [None, "", []]:
-            df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
-            df = df.query("Sport==@sports")
-        fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Medal'],
-            color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
-    else:   
-        if (years in [None, "", []]) and (sports in [None, "", []]):
-            df = grouped_final_athlete_events.query("Country == 'Sweden'")
-        elif years not in [None, "", []] and sports in [None, "", []]:
-            # Query for country Sweden and year 2016
-            df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
-        elif years in [None, "", []] and sports not in [None, "", []]:
-            df = grouped_final_athlete_events.query("Country == 'Sweden' and Sport==@sports")
-        elif years not in [None, "", []] and sports not in [None, "", []]:
-            df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
-            df = df.query("Sport==@sports")      
-
-        fig = px.sunburst(df, values='Number of Medals', path=['Medal', 'Sport'],
-            color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
+def figure_two(years, sports, season, sort):
+    df = grouped_final_athlete_events.query("Country == 'Sweden'")
+    if years:
+        df = df.query("Year == @years")
+    if sports:
+        df = df.query("Sport == @sports")
+    if season:
+        df = df.query("Season == @season")
+   
+    if sort == "Sports":
+        fig = px.sunburst(df, 
+                          values='Number of Medals', 
+                          path=['Sport', 'Medal'],
+                          color_discrete_sequence=px.colors.qualitative.Pastel1, 
+                          title = "Medals and sports for team SWEDEN")
+    else:   # Default value is now by Medal
+            fig = px.sunburst(df, 
+                              values='Number of Medals', 
+                              path=['Medal', 'Sport'],
+                              color_discrete_sequence=px.colors.qualitative.Pastel1, 
+                              title = "Medals and sports for team SWEDEN")
     return fig
-
 
 # Figure three: Bar graph showing top 10 sports with the most medals in Sweden
 @callback(
@@ -279,19 +263,19 @@ def figure_two(years, sports, sort):
         Input('season_dropdown', 'value'),
     ]
 )
-def figure_three(year, sport, season):
+def figure_three(years, sports, season):
     # Filter the data based on the selected values
-    filtered_data = grouped_final_athlete_events.query("Country == 'Sweden'")
+    df = grouped_final_athlete_events.query("Country == 'Sweden'")
 
-    if year:
-        filtered_data = filtered_data[filtered_data['Year'].isin(year)]
-    if sport:
-        filtered_data = filtered_data[filtered_data['Sport'].isin(sport)]
+    if years:
+        df = df.query("Year == @years")
+    if sports:
+        df = df.query("Sport == @sports")
     if season:
-        filtered_data = filtered_data[filtered_data['Season'].isin(season)]
+        df = df.query("Season == @season")
 
     # Grouping by sport and counting medals
-    medals_per_sport = filtered_data[filtered_data['Number of Medals'] > 0].groupby("Sport", as_index=False)["Number of Medals"].count()
+    medals_per_sport = df[df['Number of Medals'] > 0].groupby("Sport", as_index=False)["Number of Medals"].count()
     
     # Sort values on number of medals in descending order, resetting index and displaying the result in a plot.
     fig = px.bar(
@@ -318,22 +302,22 @@ def figure_three(year, sport, season):
 
     ]
 )
-def figure_four(year, sport, season):
+def figure_four(years, sports, season):
     # Filter the data based on the selected values
-    filtered_data = grouped_final_athlete_events.query("Country == 'Sweden'")
-    if year:
-        filtered_data = filtered_data[filtered_data['Year'].isin(year)]
-    if sport:
-        filtered_data = filtered_data[filtered_data['Sport'].isin(sport)]
+    df = grouped_final_athlete_events.query("Country == 'Sweden'")
+    if years:
+        df = df.query("Year == @years")
+    if sports:
+        df = df.query("Sport == @sports")
     if season:
-        filtered_data = filtered_data[filtered_data['Season'].isin(season)]
-
+        df = df.query("Season == @season")
+# filtered_data[filtered_data['Year'].isin(year)]
     # Grouping by sport and counting medals
-    medals_per_sport = filtered_data[filtered_data['Number of Medals'] > 0].groupby(["Sport", "Medal"], as_index=False)["Number of Medals"].count()
-    
-    # Filter to include only Gold medals
-    medals_per_sport = medals_per_sport[medals_per_sport['Medal'].isin(['Gold'])]
+    medals_per_sport = df[df['Number of Medals'] > 0].groupby(["Sport", "Medal"], as_index=False)["Number of Medals"].count()
 
+     # Filter to include only Gold medals
+    medals_per_sport = medals_per_sport[medals_per_sport['Medal'].isin(['Gold'])]
+    
     # Sort values on the number of medals in descending order, resetting index and displaying the result in a plot.
     fig = px.bar(
         data_frame=medals_per_sport.sort_values(by='Number of Medals', ascending=False, ignore_index=True).head(10),
@@ -346,8 +330,6 @@ def figure_four(year, sport, season):
     fig.update_xaxes(tickangle=45)
 
     return fig   
-
-
 
 # Figure five: Mapbox graph showing participants and medals per country/year and season by choice
 @callback(
