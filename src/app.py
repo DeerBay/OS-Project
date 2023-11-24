@@ -5,51 +5,27 @@ import plotly.express as px
 import pandas as pd
 from dash_bootstrap_templates import load_figure_template
 
-# Df All Athletes 
+############### Preparation of dataframes for the app ###############
+
+# Read the required datafiles for the app
 athlete_events = pd.read_csv("../data/final_df.csv", low_memory=False)
-
-# Rename column "Name" to "Participants"
-athlete_events = athlete_events.rename(columns={"Name": "Participants"})
-
-# Df Swedish Athletes
-sweden_athletes = pd.DataFrame(athlete_events[athlete_events["NOC"] == "SWE"])
-
 gender_ratios = pd.read_csv("../data/gender_ratios.csv")
 
-participants_medals= athlete_events.groupby(['Year','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
-    {'Participants': 'nunique', 'Medal': 'count'})
+# Grouping nr 1 to sum the number of Medals
+athlete_events_number_medals = athlete_events.groupby([
+    'Year','Season','Participants','Country', 'Sport', 
+    'Medal', 'Country_latitude','Country_longitude']
+    ).size().reset_index(name="Number of Medals")
 
-participants_medals_start = participants_medals.groupby(['Country','Continent' , 
-                                                        'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
-
-participants_medals_sport = athlete_events.groupby(['Year', 'Country', 'Sport', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
-    {'Participants': 'nunique', 'Medal': 'count'})
-
-participants_medals_sport = athlete_events.groupby(['Year','Country', 'Sport', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
-    {'Participants': 'nunique', 'Medal': 'count'})
-
-participants_medals_sport_total = participants_medals_sport.groupby(['Country','Sport' , 'Continent',
-                                                        'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
-
-participants_medals_sport_year = participants_medals_sport.groupby(['Year','Country','Sport' , 'Continent',
-                                                        'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
-
-medal_distribution = athlete_events.groupby(['Year','Country', 'Sport', 'Medal']).size().reset_index(name="Number of Medals")
+# Grouping nr 2 to have our final dataframe for the app - sum of participants and number of medals count
+grouped_final_athlete_events = athlete_events_number_medals.groupby([
+    'Year','Country','Season','Sport','Medal','Country_latitude', 'Country_longitude'],as_index=False
+    )[['Participants', 'Number of Medals']].agg(
+    {'Participants': 'nunique', 'Number of Medals': 'count'}
+    )
 
 
-medal_distribution_sweden = medal_distribution.query('Country == "Sweden"')
-
-
-participants_medals_season = athlete_events.groupby(['Year','Season','Country', 'Continent','Country_latitude', 'Country_longitude','Continent_latitude', 'Continent_longitude'], as_index=False)[['Participants', 'Medal']].agg(
-    {'Participants': 'nunique', 'Medal': 'count'})
-
-
-participants_medals_season_start= participants_medals_season.groupby(['Country','Season','Continent' , 
-                                                        'Country_latitude', 'Country_longitude','Continent_latitude', 
-                                                        'Continent_longitude'], as_index=False)[['Participants', 'Medal']].sum()
+############### Creating the app ###############
 
 # Loading template for graphs
 load_figure_template("quartz")
@@ -223,7 +199,6 @@ fluid=True
 
 ############ Callback Decoraters to define functions ############ 
 
-
 @callback(
     Output("graph_gender_or_medals_mapbox", "figure"),
     Input("year_dropdown", "value"),
@@ -233,27 +208,27 @@ fluid=True
 def figure_one(years, sports, sort):
     if sort == "Medals" or sort in [None, "", []]:
         if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.scatter_mapbox(participants_medals_start, lat="Country_latitude", 
+            fig = px.scatter_mapbox(grouped_final_athlete_events.drop(columns=["Year","Sport","Season","Medal"]), lat="Country_latitude", 
             lon="Country_longitude", size="Participants", color="Medal", 
              hover_name="Country",  mapbox_style="open-street-map", 
             center=dict(lat=0, lon=0), zoom=1.2, opacity=0.5,
             title="Size according to count of participants")
         elif years not in [None, "", []] and sports in [None, "", []]:
-            df = participants_medals.query("Year==@years")
+            df = grouped_athlete_events.drop(columns="Sport").query("Year==@years")
             fig = px.scatter_mapbox(df, lat="Country_latitude", 
             lon="Country_longitude", size="Participants", color="Medal", 
             hover_name="Country",  mapbox_style="open-street-map", 
             center=dict(lat=0, lon=0), zoom=1,
             title="Size according to count of participants")
         elif years in [None, "", []] and sports not in [None, "", []]:
-            df = participants_medals_sport.query("Sport==@sports")
+            df = grouped_athlete_events.drop(columns="Year").query("Sport==@sports")
             fig = px.scatter_mapbox(df, lat="Country_latitude", 
             lon="Country_longitude", size="Participants", color="Medal", 
             hover_name="Country",  mapbox_style="open-street-map",
             center=dict(lat=0, lon=0), zoom=1, 
             title="Size according to count of participants")
         elif years not in [None, "", []] and sports not in [None, "", []]:
-            df = participants_medals_sport_year.query("Year==@years")
+            df = grouped_athlete_events.query("Year==@years")
             df = df.query("Sport==@sports")
             fig = px.scatter_mapbox(df, lat="Country_latitude", 
             lon="Country_longitude", size="Participants", color="Medal", 
@@ -268,7 +243,6 @@ def figure_one(years, sports, sort):
                 center=dict(lat=0, lon=0), zoom=1, title="Gender ratios over the years")
 
     fig.update_mapboxes(bounds_east=180, bounds_west=-180, bounds_north=90, bounds_south=-90)
-    
     return fig
 
 
@@ -319,13 +293,13 @@ Input("season_dropdown", "value")
 def figure_three(years, sports, sort):
     if sort in [None, "", []]:
         if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.scatter_mapbox(participants_medals_start, lat="Country_latitude", 
+            fig = px.scatter_mapbox(grouped_athlete_events.drop(columns="Year"), lat="Country_latitude", 
             lon="Country_longitude", size="Participants", color="Medal", 
              hover_name="Country",  mapbox_style="open-street-map", 
             center=dict(lat=0, lon=0), zoom=1.2, opacity=0.5,
             title="Size according to count of participants and Season")
         if years not in [None, "", []] and sports in [None, "", []]:
-            df = participants_medals.query("Year==@years")
+            df = grouped_athlete_events.query("Year==@years")
             fig = px.scatter_mapbox(df, lat="Country_latitude", 
             lon="Country_longitude", size="Participants", color="Medal", 
             hover_name="Country",  mapbox_style="open-street-map", 
