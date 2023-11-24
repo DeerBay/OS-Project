@@ -209,30 +209,26 @@ fluid=True
 def figure_one(years, sports, sort):
     if sort == "Sport" or sort in [None, "", []]:
         if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.sunburst(grouped_final_athlete_events.sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80), values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
+            df = grouped_final_athlete_events.sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
         elif years not in [None, "", []] and sports in [None, "", []]:
             df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
         elif years in [None, "", []] and sports not in [None, "", []]:
             df = grouped_final_athlete_events.query("Sport==@sports").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
         elif years not in [None, "", []] and sports not in [None, "", []]:
             df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
             df = df.query("Sport==@sports")
-            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
+        fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
     else:
         if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.sunburst(grouped_final_athlete_events.sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80), values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
+            df = grouped_final_athlete_events.sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
         elif years not in [None, "", []] and sports in [None, "", []]:
             df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-            fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
         elif years in [None, "", []] and sports not in [None, "", []]:
             df = grouped_final_athlete_events.query("Sport==@sports").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
-            fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
         elif years not in [None, "", []] and sports not in [None, "", []]:
             df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
             df = df.query("Sport==@sports")
-            fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
+        fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
     return fig
 
 
@@ -247,42 +243,31 @@ def figure_two(years, sports, sort):
     title_fig = "Medals and sports for team SWEDEN"
     if sort == "Sports" or sort in [None, "", []]:
         if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.sunburst(grouped_final_athlete_events.query("Country == 'Sweden'"), values='Number of Medals', 
-                color_discrete_sequence=px.colors.qualitative.Pastel1, path=['Sport', 'Medal'], title = title_fig)
+            df = grouped_final_athlete_events.query("Country == 'Sweden'")
         elif years not in [None, "", []] and sports in [None, "", []]:
-            # Query for country Sweden and year 2016
             df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
-            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Medal'],
-                color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
         elif years in [None, "", []] and sports not in [None, "", []]:
             df = grouped_final_athlete_events.query("Country == 'Sweden' and Sport==@sports")
-            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Medal'],
-                color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
         elif years not in [None, "", []] and sports not in [None, "", []]:
             df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
             df = df.query("Sport==@sports")
-            fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Medal'],
+        fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Medal'],
             color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
-        return fig
     else:   
         if (years in [None, "", []]) and (sports in [None, "", []]):
-            fig = px.sunburst(grouped_final_athlete_events.query("Country == 'Sweden'"), values='Number of Medals', 
-                color_discrete_sequence=px.colors.qualitative.Pastel1, path=['Medal','Sport'], title = title_fig)
+            df = grouped_final_athlete_events.query("Country == 'Sweden'")
         elif years not in [None, "", []] and sports in [None, "", []]:
             # Query for country Sweden and year 2016
             df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
-            fig = px.sunburst(df, values='Number of Medals', path=['Medal','Sport'],
-                color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
         elif years in [None, "", []] and sports not in [None, "", []]:
             df = grouped_final_athlete_events.query("Country == 'Sweden' and Sport==@sports")
-            fig = px.sunburst(df, values='Number of Medals', path=['Medal','Sport'],
-                color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
         elif years not in [None, "", []] and sports not in [None, "", []]:
             df = grouped_final_athlete_events.query("Country == 'Sweden' and Year==@years")
-            df = df.query("Sport==@sports")
-            fig = px.sunburst(df, values='Number of Medals', path=['Medal','Sport'],
+            df = df.query("Sport==@sports")      
+
+        fig = px.sunburst(df, values='Number of Medals', path=['Medal', 'Sport'],
             color_discrete_sequence=px.colors.qualitative.Pastel1, title = title_fig)
-        return fig
+    return fig
 
 
 # Figure three: Bar graph showing top 10 sports with the most medals in Sweden
