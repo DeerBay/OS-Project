@@ -182,7 +182,7 @@ app.layout = dbc.Container([
     dbc.Row([
             dbc.Button("Reset", 
                     id='reset-button', 
-                    #href="https://iths-olympics.onrender.com",   
+                    href="https://iths-olympics.onrender.com",   
                     title='Resets all graphs',
                     style={'width': '150px'}), # Hover text
 
