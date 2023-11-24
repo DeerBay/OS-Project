@@ -221,6 +221,7 @@ def figure_one(years, sports, sort):
             df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
             df = df.query("Sport==@sports")
             fig = px.sunburst(df, values='Number of Medals', path=['Sport', 'Country'], title= "Medals and sports for all countries")
+            return fig
     else:
         if (years in [None, "", []]) and (sports in [None, "", []]):
             fig = px.sunburst(grouped_final_athlete_events.sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80), values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
@@ -234,7 +235,7 @@ def figure_one(years, sports, sort):
             df = grouped_final_athlete_events.query("Year==@years").sort_values(by="Number of Medals", ascending=False, ignore_index=True).head(80)
             df = df.query("Sport==@sports")
             fig = px.sunburst(df, values='Number of Medals', path=['Country', 'Sport'], title= "Medals and sports for all countries")
-    return fig
+        return fig
 
 
 # Figure two; Sunburst graph sorted by number of medals per sport/year for SWEDEN
